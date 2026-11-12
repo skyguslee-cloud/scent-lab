@@ -10,11 +10,12 @@
 - 서버 설정: [js/config.js](js/config.js) (공개용 publishable 키라 브라우저에 있어도 괜찮음)
 - 대시보드: https://supabase.com/dashboard/project/woajasonwtmgordwhmed — `profiles` 테이블에서 가입한 회원 목록을 볼 수 있습니다.
 - **가입 인증 메일 사용 중**: 가입하면 인증 메일이 가고, 메일의 링크를 눌러야 로그인할 수 있습니다. 링크를 누르면 `login.html`로 돌아와 자동 로그인됩니다.
-  - 링크가 이 사이트로 돌아오게 하려면 Authentication → URL Configuration → **Redirect URLs**에 사이트 주소를 추가하세요 (`https://skyguslee-cloud.github.io/scent-lab/**`, 로컬 테스트용 `http://localhost:5173/**`). Site URL은 `https://skyguslee-cloud.github.io/scent-lab/`로 바꿔 두세요.
+  - 링크가 이 사이트로 돌아오게 하려면 Authentication → URL Configuration → **Redirect URLs**에 사이트 주소를 추가하세요 (`https://scent-lab-wheat.vercel.app/**`, `https://skyguslee-cloud.github.io/scent-lab/**`, 로컬 테스트용 `http://localhost:5173/**`). Site URL은 주로 쓸 주소(예: `https://scent-lab-wheat.vercel.app`)로 바꿔 두세요.
   - Supabase 무료 메일은 시간당 몇 통으로 제한됩니다. 발표 때 여러 명이 동시에 가입하면 "요청이 너무 많아요" 오류가 날 수 있으니, 미리 가입해 두거나 Authentication → Emails에서 SMTP(예: Gmail, Resend)를 연결하세요.
 
 ## 배포 주소
-- 사이트: https://skyguslee-cloud.github.io/scent-lab/ (GitHub Pages, `main` 브랜치에 push하면 1~2분 뒤 자동 반영)
+- Vercel: https://scent-lab-wheat.vercel.app (GitHub 저장소와 연결되어 `main`에 push하면 자동 배포)
+- GitHub Pages: https://skyguslee-cloud.github.io/scent-lab/ (`main`에 push하면 1~2분 뒤 자동 반영)
 - 저장소: https://github.com/skyguslee-cloud/scent-lab
 
 ## 실행
