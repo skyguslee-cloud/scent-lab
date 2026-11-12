@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login — SCENT LAB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Noto+Sans+KR:wght@300;400;500&family=Nanum+Pen+Script&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .auth { display: grid; grid-template-columns: 1fr 1fr; min-height: calc(100vh - var(--header-h)); }
+    .auth .visual { background: radial-gradient(ellipse at 50% 60%, #2a2219 0%, #0b0a09 75%); display: grid; place-items: center; color: #f2eee8; text-align: center; padding: 40px; }
+    .auth .visual .b { height: 340px; margin: 0 auto 28px; }
+    .auth .panel { display: flex; flex-direction: column; justify-content: center; padding: 56px clamp(24px, 7vw, 110px); }
+    .auth .tabs-line { margin-bottom: 36px; }
+    .auth .tabs-line button { font-size: 13px; }
+    .err { color: var(--danger); font-size: 13px; min-height: 20px; margin: -6px 0 14px; }
+    .perks { display: grid; gap: 10px; margin-top: 28px; font-size: 13px; color: var(--muted); }
+    @media (max-width: 860px) { .auth { grid-template-columns: 1fr; } .auth .visual { display: none; } }
+  </style>
+</head>
+<body>
+  <header class="site-header"></header>
+  <main>
+    <div class="auth">
+      <div class="visual">
+        <div>
+          <div class="b" id="visual"></div>
+          <span class="eyebrow" style="color:#c8b48f">Member's Atelier</span>
+          <h2 class="h1" style="margin-top:12px">당신의 향을<br>기억해 둘게요</h2>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="tabs-line" id="tabs"><button data-t="login" class="on">로그인</button><button data-t="join">회원가입</button></div>
+
+        <form id="loginForm" novalidate>
+          <h1 class="h1" style="margin-bottom:28px">Welcome back</h1>
+          <div class="field"><label>이메일</label><input class="input" type="email" name="email" autocomplete="email" required></div>
+          <div class="field"><label>비밀번호</label><input class="input" type="password" name="password" autocomplete="current-password" required></div>
+          <p class="err" data-err></p>
+          <button class="btn btn-block" type="submit">로그인</button>
+          <p class="muted center" style="font-size:13px;margin-top:20px">아직 회원이 아니신가요? <a href="#" class="link" data-go="join" style="font-size:11px">회원가입</a></p>
+        </form>
+
+        <form id="joinForm" novalidate style="display:none">
+          <h1 class="h1" style="margin-bottom:28px">Join SCENT LAB</h1>
+          <div class="grid grid-2" style="gap:0 16px">
+            <div class="field"><label>이름 *</label><input class="input" name="name" maxlength="12" autocomplete="name" required></div>
+            <div class="field"><label>휴대폰</label><input class="input" name="phone" placeholder="010-0000-0000" autocomplete="tel"></div>
+          </div>
+          <div class="field"><label>이메일 *</label><input class="input" type="email" name="email" autocomplete="email" required></div>
+          <div class="grid grid-2" style="gap:0 16px">
+            <div class="field"><label>비밀번호 * (6자 이상)</label><input class="input" type="password" name="password" autocomplete="new-password" minlength="6" required></div>
+            <div class="field"><label>비밀번호 확인 *</label><input class="input" type="password" name="password2" autocomplete="new-password" required></div>
+          </div>
+          <div class="field"><label>생일 (생일 쿠폰을 보내 드려요)</label><input class="input" type="date" name="birthday"></div>
+          <label class="check" style="margin-bottom:8px"><input type="checkbox" name="agree"> 이용약관 및 개인정보 수집에 동의합니다 (필수)</label>
+          <p class="muted" style="font-size:11px;margin:0 0 16px">과제용 데모 사이트예요. 실제 판매·결제는 없으며, 회원 정보는 데모 서버(Supabase)에 저장됩니다.</p>
+          <p class="err" data-err></p>
+          <button class="btn btn-block" type="submit">가입하기</button>
+          <div class="perks"><span>🎂 생일 3일 전 20% 쿠폰</span><span>📅 소중한 사람의 기념일 알림</span><span>✎ 레시피 저장 · 어느 기기에서나 이어서</span></div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/bottle.js"></script>
+  <script>
+    (function () {
+      const next = (() => { const n = qs("next") || "mypage.html"; return /^[a-z]+\.html([?#].*)?$/i.test(n) ? n : "mypage.html"; })();
+      $("#visual").innerHTML = renderBottle({ shape: "moon", cap: "gold", notes: { rose: 50, amber: 50, bergamot: 30 }, label: "Bienvenue", size: 100, attrs: 'style="height:100%;margin:auto"' });
+
+      if (currentUser()) { location.replace(next); return; }
+
+      function tab(t) {
+        $$("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.t === t));
+        $("#loginForm").style.display = t === "login" ? "" : "none";
+        $("#joinForm").style.display = t === "join" ? "" : "none";
+      }
+      $("#tabs").onclick = (e) => { const b = e.target.closest("[data-t]"); if (b) tab(b.dataset.t); };
+      $$("[data-go]").forEach((a) => (a.onclick = (e) => { e.preventDefault(); tab(a.dataset.go); }));
+      if (qs("join")) tab("join");
+
+      const busy = (form, on) => { const b = $("button[type=submit]", form); b.disabled = on; b.textContent = on ? "잠시만요…" : b.dataset.label || (b.dataset.label = b.textContent); };
+      const fail = (form, msg) => { $("[data-err]", form).textContent = msg; };
+      const done = (res, verb) => {
+        toast(`${verb} 완료${res.merged ? ` · 장바구니 상품 ${res.merged}개를 옮겼어요` : ""}`, "✓");
+        setTimeout(() => location.replace(next), 600);
+      };
+
+      $("#loginForm").onsubmit = async (e) => {
+        e.preventDefault();
+        const f = e.target;
+        $("button[type=submit]", f).dataset.label = "로그인";
+        if (!f.email.value || !f.password.value) return fail(f, "이메일과 비밀번호를 입력해 주세요.");
+        busy(f, true); fail(f, "");
+        try { done(await signIn(f.email.value.trim(), f.password.value), "로그인"); }
+        catch (err) { fail(f, authErrorKo(err)); busy(f, false); }
+      };
+
+      $("#joinForm").onsubmit = async (e) => {
+        e.preventDefault();
+        const f = e.target;
+        $("button[type=submit]", f).dataset.label = "가입하기";
+        const v = (n) => f[n].value.trim();
+        if (!v("name")) return fail(f, "이름을 입력해 주세요.");
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v("email"))) return fail(f, "이메일 형식을 확인해 주세요.");
+        if (f.password.value.length < 6) return fail(f, "비밀번호는 6자 이상이어야 해요.");
+        if (f.password.value !== f.password2.value) return fail(f, "비밀번호가 서로 달라요.");
+        if (!f.agree.checked) return fail(f, "약관에 동의해 주세요.");
+        busy(f, true); fail(f, "");
+        try {
+          const res = await signUp({ name: v("name"), email: v("email"), password: f.password.value, phone: v("phone"), birthday: f.birthday.value });
+          if (res.needsConfirm) {
+            busy(f, false);
+            openModal(`<div class="center"><span class="eyebrow">Check your inbox</span><h2 class="h2" style="margin:12px 0">인증 메일을 보냈어요</h2>
+              <p class="muted">${esc(v("email"))} 로 보낸 메일의 링크를 누른 뒤 로그인해 주세요.</p>
+              <button class="btn btn-sm" style="margin-top:24px" onclick="closeModal()">확인</button></div>`);
+            tab("login");
+            $("#loginForm").email.value = v("email");
+            return;
+          }
+          done(res, `${v("name")}님, 가입`);
+        } catch (err) { fail(f, authErrorKo(err)); busy(f, false); }
+      };
+
+      // returning from an email-confirmation link: the session arrives in the URL
+      sb?.auth.getSession().then(async ({ data }) => {
+        if (data.session && !currentUser()) done(await afterSignIn(data.session), "메일 인증");
+      });
+    })();
+  </script>
+</body>
+</html>

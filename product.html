@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Product — SCENT LAB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Noto+Sans+KR:wght@300;400;500&family=Nanum+Pen+Script&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header"></header>
+  <main>
+    <div class="container" id="pd"></div>
+    <section class="section-sm container">
+      <div class="section-head" style="margin-bottom:40px"><span class="eyebrow">You may also like</span></div>
+      <div class="grid grid-4" id="related"></div>
+    </section>
+  </main>
+  <footer class="site-footer"></footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/bottle.js"></script>
+  <script src="js/notify.js"></script>
+  <script>
+    (function () {
+      const p = productById(qs("id")) || PRODUCTS[0];
+      document.title = `${p.name} — SCENT LAB`;
+      let size = p.cat === "perfume" ? 50 : null;
+      let qty = 1;
+      const reviews = REVIEWS.filter((r) => r.product === p.id).concat(REVIEWS.filter((r) => r.product !== p.id)).slice(0, 3);
+      const avg = (reviews.reduce((s, r) => s + r.stars, 0) / reviews.length).toFixed(1);
+      const tierNotes = (t) => Object.keys(p.notes || {}).filter((k) => noteById(k).tier === t).map((k) => `<span style="display:inline-flex;align-items:center;gap:5px"><i style="width:8px;height:8px;border-radius:50%;background:${noteById(k).color}"></i>${noteById(k).name}</span>`).join("");
+      const priceOf = () => productSizePrice(p, size) * qty;
+
+      $("#pd").innerHTML = `
+        <div class="pd">
+          <div class="gallery">${productVisual(p)}</div>
+          <div>
+            <a href="shop.html" class="eyebrow">← Collection</a>
+            ${p.badge ? `<p class="eyebrow gold" style="margin-top:28px">${p.badge}</p>` : ""}
+            <h1 class="h1" style="margin:10px 0 4px">${p.name}</h1>
+            <p class="muted">${p.ko} · ${p.sub}</p>
+            <p style="margin:6px 0 0" class="stars">${"★".repeat(Math.round(avg))} <span class="muted" style="font-size:12px;letter-spacing:0">${avg} · 리뷰 ${reviews.length * 37}</span></p>
+            <p class="serif" style="font-size:30px;margin:22px 0" id="price"></p>
+            <p style="color:var(--ink-2)">${p.story}</p>
+            ${p.notes ? `<div class="pyramid">
+              <div><span class="upper muted">Top</span><div class="bar">${tierNotes("top") || "—"}</div></div>
+              <div><span class="upper muted">Heart</span><div class="bar">${tierNotes("mid") || "—"}</div></div>
+              <div><span class="upper muted">Base</span><div class="bar">${tierNotes("base") || "—"}</div></div>
+            </div>` : `<div style="height:24px"></div>`}
+            ${size ? `<div class="field"><label>용량</label><div class="size-opts">${SIZES.map((s) => `<button class="chip ${s.id === 50 ? "on" : ""}" data-size="${s.id}">${s.name}</button>`).join("")}</div></div>` : ""}
+            <div class="row" style="margin:26px 0 14px">
+              <div class="qty"><button id="minus" aria-label="수량 줄이기">−</button><span id="qty">1</span><button id="plus" aria-label="수량 늘리기">+</button></div>
+              <button class="btn" style="flex:1" id="add">장바구니 담기</button>
+              <button class="icon-btn wish-btn ${wish.has(p.id) ? "on" : ""}" data-wish="${p.id}" aria-label="위시리스트" style="border:1px solid var(--line);border-radius:0;width:52px;height:52px">${ICON.heart}</button>
+            </div>
+            ${p.notes ? `<button class="btn btn-ghost btn-block" id="custom">이 향을 바탕으로 커스텀하기 →</button>` : ""}
+            <div style="margin-top:36px">
+              <details class="accordion" open><summary>향의 이야기</summary><p>${p.story} ${p.notes ? describeRecipe(p.notes) : ""}</p></details>
+              <details class="accordion"><summary>무료 선물 포장</summary><p>모든 주문에 시그니처 쇼핑백과 손글씨 메시지 카드를 무료로 넣어 드려요. 아틀리에에서 포장지·리본·박스를 직접 고를 수도 있어요.</p></details>
+              <details class="accordion"><summary>배송 · 반품</summary><p>10만원 이상 무료배송 · 평일 오후 2시 이전 주문 시 당일 출고 (데모 사이트로 실제 배송은 없습니다).</p></details>
+            </div>
+          </div>
+        </div>
+        <section class="narrow section-sm">
+          <h2 class="h2" style="margin-bottom:10px">Reviews</h2>
+          ${reviews.map((r) => `<div class="review"><div class="stars">${"★".repeat(r.stars)}${"☆".repeat(5 - r.stars)}</div><p style="margin:8px 0">${r.text}</p><div class="meta">${r.who} · 구매 인증</div></div>`).join("")}
+        </section>`;
+
+      const sync = () => { $("#price").textContent = won(priceOf()); $("#qty").textContent = qty; };
+      sync();
+      $$("[data-size]").forEach((b) => b.onclick = () => { size = Number(b.dataset.size); $$("[data-size]").forEach((x) => x.classList.toggle("on", x === b)); sync(); });
+      $("#minus").onclick = () => { qty = Math.max(1, qty - 1); sync(); };
+      $("#plus").onclick = () => { qty = Math.min(9, qty + 1); sync(); };
+      $("#add").onclick = () => {
+        cart.add({ type: "product", id: p.id, size, price: productSizePrice(p, size), qty });
+        toast(`${p.name}${size ? " " + size + "ml" : ""} × ${qty} 담았어요`, "🛍");
+      };
+      $("#custom") && ($("#custom").onclick = () => openInLab(productToRecipe(p)));
+
+      const rel = PRODUCTS.filter((x) => x.id !== p.id).map((x) => ({ x, s: x.tags.mood.filter((m) => p.tags.mood.includes(m)).length + (x.cat === p.cat ? 1 : 0) }))
+        .sort((a, b) => b.s - a.s).slice(0, 4).map((o) => o.x);
+      $("#related").innerHTML = rel.map(productCard).join("");
+    })();
+  </script>
+</body>
+</html>

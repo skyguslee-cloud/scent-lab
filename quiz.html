@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scent Test — SCENT LAB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Noto+Sans+KR:wght@300;400;500&family=Nanum+Pen+Script&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header"></header>
+  <main>
+    <section class="section container" id="quiz"></section>
+  </main>
+  <footer class="site-footer"></footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/bottle.js"></script>
+  <script src="js/notify.js"></script>
+  <script>
+    (function () {
+      const box = $("#quiz");
+      let i = -1;
+      const score = Object.fromEntries(FAMILIES.map((f) => [f.id, 0]));
+      const history = [];
+
+      function intro() {
+        box.innerHTML = `<div class="quiz-box">
+          <span class="eyebrow">Scent Personality Test</span>
+          <h1 class="display" style="margin:20px 0">Who are you,<br><i>in scent?</i></h1>
+          <p class="muted" style="margin-bottom:40px">7개의 질문으로 당신의 향 타입을 찾고, 맞춤 레시피를 아틀리에로 바로 가져가세요.</p>
+          <button class="btn" id="start">시작하기</button></div>`;
+        $("#start").onclick = () => { i = 0; question(); };
+      }
+      function question() {
+        const q = QUIZ[i];
+        box.innerHTML = `<div class="quiz-box">
+          <div class="quiz-progress"><i style="width:${(i / QUIZ.length) * 100}%"></i></div>
+          <span class="eyebrow">Question ${i + 1} / ${QUIZ.length}</span>
+          <h2 class="quiz-q">${q.q}</h2>
+          <div class="quiz-opts">${q.a.map((a, j) => `<button class="quiz-opt" data-j="${j}"><span class="em">${a.e}</span>${a.t}</button>`).join("")}</div>
+          ${i > 0 ? `<button class="link" id="back" style="margin-top:36px">이전 질문</button>` : ""}
+        </div>`;
+        const bar = $(".quiz-progress i");
+        requestAnimationFrame(() => (bar.style.width = ((i + 1) / QUIZ.length) * 100 + "%"));
+        $$(".quiz-opt").forEach((b) => b.onclick = () => {
+          const f = q.a[b.dataset.j].f;
+          history.push(f);
+          Object.entries(f).forEach(([k, v]) => (score[k] += v));
+          i++;
+          i < QUIZ.length ? question() : analyzing();
+        });
+        $("#back") && ($("#back").onclick = () => { const f = history.pop(); Object.entries(f).forEach(([k, v]) => (score[k] -= v)); i--; question(); });
+      }
+      function analyzing() {
+        box.innerHTML = `<div class="quiz-box" style="padding:80px 0"><div style="height:220px">${renderBottle({ shape: "moon", cap: "gold", notes: { bergamot: 1, rose: 1, sandalwood: 1 }, attrs: 'style="height:100%;margin:auto"' })}</div>
+          <p class="eyebrow" style="margin-top:28px">당신의 향을 블렌딩하는 중…</p></div>`;
+        setTimeout(result, 1600);
+      }
+      function result() {
+        const top = Object.entries(score).sort((a, b) => b[1] - a[1])[0][0];
+        const R = QUIZ_RESULTS[top];
+        const p = productById(R.product);
+        const recipe = newRecipe();
+        recipe.notes = { ...R.notes };
+        recipe.name = R.title;
+        recipe.bottle = p.bottle; recipe.cap = p.cap;
+        store.set("quizResult", { type: top, at: fmtDate(today()) });
+        box.innerHTML = `
+          <div class="result-hero">
+            <div style="height:440px;background:var(--bg-soft);display:grid;place-items:center">${renderBottle({ shape: p.bottle, cap: p.cap, notes: R.notes, label: R.title, size: 100, attrs: 'style="height:85%"' })}</div>
+            <div>
+              <span class="eyebrow">Your scent type</span>
+              <h1 class="display" style="font-size:clamp(44px,5vw,72px);margin:14px 0 6px">${R.title}</h1>
+              <div class="h3 gold">${R.ko}</div>
+              <p style="margin:22px 0">${R.desc}</p>
+              <div style="height:220px;max-width:340px"><canvas id="qr"></canvas></div>
+              <p class="muted" style="font-size:13px;margin:16px 0 26px">추천 레시피 · ${Object.keys(R.notes).map((k) => noteById(k).name).join(" · ")}</p>
+              <div class="row wrap">
+                <button class="btn" id="toLab">이 레시피로 만들기</button>
+                <a class="btn btn-ghost" href="product.html?id=${p.id}">추천 향수 · ${p.name}</a>
+              </div>
+              <button class="link" id="again" style="margin-top:28px">다시 하기</button>
+            </div>
+          </div>`;
+        $("#toLab").onclick = () => openInLab(recipe);
+        $("#again").onclick = () => location.reload();
+        if (window.Chart) {
+          const max = Math.max(...Object.values(score), 1);
+          const css = getComputedStyle(document.documentElement);
+          new Chart($("#qr"), {
+            type: "radar",
+            data: { labels: FAMILIES.map((f) => f.ko), datasets: [{ data: FAMILIES.map((f) => Math.round((score[f.id] / max) * 100)), backgroundColor: blendColor(R.notes) + "99", borderColor: shade(blendColor(R.notes), -0.35), borderWidth: 1.5, pointRadius: 2 }] },
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { min: 0, max: 100, ticks: { display: false }, grid: { color: css.getPropertyValue("--line") }, angleLines: { color: css.getPropertyValue("--line") }, pointLabels: { color: css.getPropertyValue("--muted") } } } },
+          });
+        }
+      }
+      intro();
+    })();
+  </script>
+</body>
+</html>

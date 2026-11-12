@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCENT LAB — Maison de Parfum</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Noto+Sans+KR:wght@300;400;500&family=Nanum+Pen+Script&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="home">
+  <header class="site-header"></header>
+  <main>
+    <!-- hero -->
+    <section class="hero">
+      <div class="particles" id="particles"></div>
+      <div class="hero-inner">
+        <div class="left">
+          <span class="eyebrow reveal">Maison de Parfum · Seoul</span>
+          <h1 class="display reveal d1" style="margin-top:18px">Write<br><i>your own</i></h1>
+        </div>
+        <div class="hero-bottle" id="heroBottle"></div>
+        <div class="right">
+          <h1 class="display reveal d1">Scent.</h1>
+          <p class="reveal d2" style="margin:22px 0 32px;color:#cfc3ae;max-width:340px">세상에 단 하나뿐인 향.<br>향료부터 병, 각인, 포장까지 — 당신의 이야기로 완성하세요.</p>
+          <div class="row wrap reveal d3">
+            <a href="lab.html" class="btn">향 만들기</a>
+            <a href="gift.html" class="btn btn-ghost">선물 추천받기</a>
+          </div>
+        </div>
+      </div>
+      <div class="scroll-cue">SCROLL</div>
+    </section>
+
+    <!-- signature collection -->
+    <section class="section container">
+      <div class="section-head">
+        <span class="eyebrow reveal">The Signatures</span>
+        <h2 class="h1 reveal d1">시그니처 컬렉션</h2>
+        <p class="reveal d2">조향사가 완성한 여덟 가지 이야기. 그대로 즐기거나, 아틀리에에서 나만의 버전으로 바꿔 보세요.</p>
+      </div>
+      <div class="grid grid-4" id="signatures"></div>
+      <div class="center" style="margin-top:56px"><a href="shop.html" class="link">컬렉션 전체 보기</a></div>
+    </section>
+
+    <!-- atelier split -->
+    <section class="split">
+      <div class="visual" id="atelierVisual"></div>
+      <div class="copy soft">
+        <span class="eyebrow reveal">L'Atelier</span>
+        <h2 class="h1 reveal d1">당신이 조향사가<br>되는 곳</h2>
+        <p class="muted reveal d2">18가지 향료를 직접 고르고 비율을 조절하면, 병 속 향수의 색이 실시간으로 바뀝니다.</p>
+        <ol class="steps-mini reveal d2">
+          <li>탑 · 미들 · 베이스 노트 블렌딩</li>
+          <li>보틀 · 캡 · 용량 · 라벨 각인</li>
+          <li>롤온 · 캔들 · 디퓨저 액세서리</li>
+          <li>포장지 · 리본 · 박스 · 손글씨 카드</li>
+        </ol>
+        <div class="reveal d3"><a href="lab.html" class="btn">아틀리에 입장</a></div>
+      </div>
+    </section>
+
+    <!-- gift finder quick -->
+    <section class="section container">
+      <div class="section-head">
+        <span class="eyebrow reveal">Gift Finder</span>
+        <h2 class="h1 reveal d1">누구에게 선물하나요?</h2>
+        <p class="reveal d2">받는 사람과 상황을 알려주시면 가장 잘 어울리는 향과 포장을 제안해 드려요.</p>
+      </div>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))" id="whoTiles"></div>
+    </section>
+
+    <!-- quiz banner -->
+    <section class="section-sm" style="background:#14110e;color:#f2eee8">
+      <div class="container row between wrap" style="gap:32px">
+        <div>
+          <span class="eyebrow" style="color:#c8b48f">Scent Personality Test</span>
+          <h2 class="h1" style="margin-top:12px">7개의 질문, 나만의 향 타입</h2>
+        </div>
+        <a href="quiz.html" class="btn" style="background:#f2eee8;color:#111;border-color:#f2eee8">테스트 시작</a>
+      </div>
+    </section>
+
+    <!-- reviews -->
+    <section class="section narrow">
+      <div class="section-head" style="margin-bottom:40px"><span class="eyebrow">Voices</span></div>
+      <div class="carousel" id="reviews">
+        <div class="carousel-track"></div>
+      </div>
+      <div class="carousel-dots" id="dots"></div>
+    </section>
+
+    <!-- anniversary service -->
+    <section class="section-sm container">
+      <div class="grid grid-2 reveal" style="align-items:center;border:1px solid var(--line);padding:clamp(28px,5vw,64px)">
+        <div>
+          <span class="eyebrow">Never Forget</span>
+          <h2 class="h2" style="margin:14px 0">소중한 날, 잊지 않게<br>먼저 알려 드릴게요</h2>
+          <p class="muted">가족·연인·친구의 생일과 기념일을 등록하면 며칠 전에 메일과 문자로 알려 드리고, 그 사람에게 어울리는 향도 함께 추천해 드려요. 내 생일엔 20% 쿠폰까지.</p>
+          <div class="row wrap" style="margin-top:28px"><a href="mypage.html#anniv" class="btn">기념일 등록하기</a></div>
+        </div>
+        <div class="phone" id="phoneDemo"><div class="from">SCENT LAB · 문자 메시지</div><div class="bubble"></div></div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer"></footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/bottle.js"></script>
+  <script src="js/notify.js"></script>
+  <script>
+    // hero bottle + particles
+    $("#heroBottle").innerHTML = renderBottle({ shape: "prism", cap: "gold", notes: { amber: 60, rose: 30, bergamot: 30 }, label: "SCENT LAB", size: 100 });
+    const pts = $("#particles");
+    for (let i = 0; i < 28; i++) {
+      const s = 2 + Math.random() * 6;
+      const d = document.createElement("span");
+      d.className = "particle";
+      Object.assign(d.style, { left: Math.random() * 100 + "%", width: s + "px", height: s + "px", animationDuration: 10 + Math.random() * 14 + "s", animationDelay: -Math.random() * 20 + "s" });
+      pts.appendChild(d);
+    }
+    addEventListener("scroll", () => { $("#heroBottle").style.transform = `translateY(${scrollY * 0.18}px)`; }, { passive: true });
+
+    // signatures
+    $("#signatures").innerHTML = PRODUCTS.filter((p) => p.cat === "perfume").slice(0, 8).map(productCard).join("");
+
+    // atelier visual: cycle through recipes
+    const demoRecipes = [
+      { notes: { lemon: 60, lavender: 40, whitemusk: 40 }, shape: "spire", cap: "silver", label: "Morning Bloom" },
+      { notes: { rose: 70, pinkpepper: 30, vanilla: 40 }, shape: "moon", cap: "gold", label: "Velvet Letter" },
+      { notes: { seasalt: 60, fig: 40, vetiver: 40 }, shape: "classic", cap: "black", label: "Silent Harbor" },
+      { notes: { cinnamon: 50, oud: 50, amber: 50 }, shape: "prism", cap: "crystal", label: "Midnight Ember" },
+    ];
+    let di = 0;
+    const av = $("#atelierVisual");
+    function cycle() {
+      const d = demoRecipes[di++ % demoRecipes.length];
+      av.innerHTML = `<div style="height:440px;transition:opacity .6s" class="reveal in">${renderBottle({ ...d, attrs: 'style="height:100%"' })}</div>`;
+    }
+    cycle(); setInterval(cycle, 3200);
+
+    // who tiles
+    $("#whoTiles").innerHTML = RECIPIENTS.map((r, i) => `<a class="tile reveal d${i % 3}" href="gift.html?who=${r.id}"><div class="emoji">${r.emoji}</div><div class="t">${r.ko}</div><div class="s">추천 보기 →</div></a>`).join("");
+
+    // reviews carousel
+    const track = $("#reviews .carousel-track");
+    track.innerHTML = REVIEWS.map((r) => `<div class="carousel-slide"><div class="stars">${"★".repeat(r.stars)}${"☆".repeat(5 - r.stars)}</div><blockquote style="margin:20px 0">“${r.text}”</blockquote><span class="muted upper">${r.who}</span></div>`).join("");
+    $("#dots").innerHTML = REVIEWS.map((_, i) => `<button data-i="${i}" aria-label="후기 ${i + 1}"></button>`).join("");
+    let ci = 0;
+    const go = (i) => { ci = (i + REVIEWS.length) % REVIEWS.length; track.style.transform = `translateX(-${ci * 100}%)`; $$("#dots button").forEach((b, j) => b.classList.toggle("on", j === ci)); };
+    $("#dots").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) go(+b.dataset.i); });
+    go(0); setInterval(() => go(ci + 1), 5000);
+
+    // phone demo typing
+    const msg = "[SCENT LAB] 엄마님의 생일이 7일 남았어요 (5월 12일).\n엄마께 'Aube Blanche' 어떠세요?\n지금 주문하면 생일 전에 도착해요.\n선물 쿠폰 10% : SCENT10";
+    const bubble = $("#phoneDemo .bubble");
+    let k = 0;
+    const io = new IntersectionObserver((en) => {
+      if (!en[0].isIntersecting) return;
+      io.disconnect();
+      const t = setInterval(() => { bubble.textContent = msg.slice(0, ++k); if (k >= msg.length) clearInterval(t); }, 35);
+    });
+    io.observe(bubble);
+  </script>
+</body>
+</html>

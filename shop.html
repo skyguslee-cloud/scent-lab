@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Collection — SCENT LAB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Noto+Sans+KR:wght@300;400;500&family=Nanum+Pen+Script&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header"></header>
+  <main>
+    <div class="page-head">
+      <span class="eyebrow">The Collection</span>
+      <h1 class="h1">컬렉션</h1>
+      <p>시그니처 퍼퓸, 기프트 세트, 그리고 향을 더하는 오브제.</p>
+    </div>
+    <div class="container">
+      <div class="shop-bar">
+        <div class="tabs-line" id="cats">
+          <button data-cat="all">All</button><button data-cat="perfume">Parfum</button><button data-cat="set">Gift Sets</button><button data-cat="accessory">Accessories</button>
+        </div>
+        <div class="row wrap">
+          <select class="input" id="family" style="width:auto;padding:10px 12px" aria-label="향 계열">
+            <option value="">모든 계열</option>
+          </select>
+          <select class="input" id="sort" style="width:auto;padding:10px 12px" aria-label="정렬">
+            <option value="rec">추천순</option><option value="low">낮은 가격순</option><option value="high">높은 가격순</option><option value="name">이름순</option>
+          </select>
+          <input class="input" id="search" placeholder="향료, 이름 검색 (예: 장미)" aria-label="검색">
+        </div>
+      </div>
+      <p class="muted" id="count" style="font-size:12px;margin:-20px 0 24px"></p>
+      <div class="grid grid-4" id="list"></div>
+    </div>
+    <section class="section-sm container">
+      <div class="soft center" style="padding:56px 24px">
+        <span class="eyebrow">Can't decide?</span>
+        <h2 class="h2" style="margin:12px 0 22px">마음에 드는 향이 없다면, 직접 만들어 보세요</h2>
+        <a href="lab.html" class="btn">아틀리에 가기</a>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer"></footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/bottle.js"></script>
+  <script src="js/notify.js"></script>
+  <script>
+    (function () {
+      const st = { cat: qs("cat") || "all", fam: "", sort: "rec", q: "" };
+      $("#family").innerHTML += FAMILIES.map((f) => `<option value="${f.id}">${f.ko}</option>`).join("");
+      function dominant(p) {
+        if (!p.notes) return null;
+        return Object.entries(famProfile(p.notes)).sort((a, b) => b[1] - a[1])[0][0];
+      }
+      function render() {
+        $$("#cats button").forEach((b) => b.classList.toggle("on", b.dataset.cat === st.cat));
+        const q = st.q.trim().toLowerCase();
+        let list = PRODUCTS.filter((p) => st.cat === "all" || p.cat === st.cat)
+          .filter((p) => !st.fam || (p.notes && famProfile(p.notes)[st.fam] >= 60))
+          .filter((p) => !q || [p.name, p.ko, p.sub, p.story, ...Object.keys(p.notes || {}).map((k) => noteById(k).name)].join(" ").toLowerCase().includes(q));
+        if (st.sort === "low") list.sort((a, b) => a.price - b.price);
+        if (st.sort === "high") list.sort((a, b) => b.price - a.price);
+        if (st.sort === "name") list.sort((a, b) => a.name.localeCompare(b.name));
+        $("#count").textContent = `${list.length}개의 상품`;
+        $("#list").innerHTML = list.length ? list.map(productCard).join("") : `<div class="empty" style="grid-column:1/-1">검색 결과가 없어요.</div>`;
+        initReveal();
+      }
+      $("#cats").onclick = (e) => { const b = e.target.closest("[data-cat]"); if (b) { st.cat = b.dataset.cat; render(); } };
+      $("#family").onchange = (e) => { st.fam = e.target.value; render(); };
+      $("#sort").onchange = (e) => { st.sort = e.target.value; render(); };
+      $("#search").oninput = (e) => { st.q = e.target.value; render(); };
+      render();
+    })();
+  </script>
+</body>
+</html>

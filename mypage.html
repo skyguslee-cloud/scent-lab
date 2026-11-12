@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Page — SCENT LAB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Noto+Sans+KR:wght@300;400;500&family=Nanum+Pen+Script&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header"></header>
+  <main>
+    <div class="page-head"><span class="eyebrow">My Page</span><h1 class="h1" id="hello">마이페이지</h1></div>
+    <div class="container mp">
+      <nav class="mp-side" id="side">
+        <button data-tab="alerts">알림 센터 <span class="cnt" data-cnt="alerts"></span></button>
+        <button data-tab="anniv">기념일 관리 <span class="cnt" data-cnt="anniv"></span></button>
+        <button data-tab="orders">주문 내역 <span class="cnt" data-cnt="orders"></span></button>
+        <button data-tab="recipes">내 레시피 <span class="cnt" data-cnt="recipes"></span></button>
+        <button data-tab="wish">위시리스트 <span class="cnt" data-cnt="wish"></span></button>
+        <button data-tab="profile">내 정보</button>
+      </nav>
+      <div>
+        <!-- alerts -->
+        <section class="mp-pane" data-pane="alerts">
+          <div class="demo-clock">
+            <div><span class="eyebrow">Demo Clock · 오늘(시연용)</span><div class="date" id="clock"></div></div>
+            <div class="row wrap" style="margin-left:auto">
+              <button class="btn btn-gold btn-sm" id="jumpNext">다음 알림일로 이동 ▶</button>
+              <button class="btn btn-ghost btn-sm" data-shift="1">+1일</button>
+              <button class="btn btn-ghost btn-sm" data-shift="7">+7일</button>
+              <button class="btn btn-ghost btn-sm" id="resetClock">오늘로</button>
+            </div>
+          </div>
+          <p class="muted" style="font-size:12px;margin:-10px 0 28px">※ 과제용 시뮬레이션입니다. 날짜를 옮기면 그날 보내질 메일·문자가 "발송됨"으로 기록될 뿐, 실제로 발송되지는 않아요.</p>
+          <h2 class="h3" style="margin-bottom:8px">발송 예정</h2>
+          <div class="timeline" id="upcoming"></div>
+          <h2 class="h3" style="margin:44px 0 8px">발송된 알림</h2>
+          <div class="timeline" id="sentList"></div>
+        </section>
+
+        <!-- anniversaries -->
+        <section class="mp-pane" data-pane="anniv">
+          <div class="box">
+            <span class="eyebrow">Add a date</span>
+            <h2 class="h2" style="margin:8px 0 22px">소중한 날 등록</h2>
+            <form id="annivForm" class="grid grid-2" style="gap:0 20px">
+              <div class="field"><label>이름 *</label><input class="input" name="name" required maxlength="12" placeholder="예) 엄마"></div>
+              <div class="field"><label>관계</label><select class="input" name="relation"></select></div>
+              <div class="field"><label>종류</label><select class="input" name="kind"><option value="birthday">생일</option><option value="anniversary">기념일</option><option value="graduation">졸업</option><option value="etc">특별한 날</option></select></div>
+              <div class="field"><label>날짜 *</label><input class="input" type="date" name="date" required></div>
+              <div class="field"><label>미리 알림</label><select class="input" name="daysBefore"><option value="1">1일 전</option><option value="3">3일 전</option><option value="7" selected>7일 전</option><option value="14">14일 전</option></select></div>
+              <div class="field"><label>알림 채널</label><div class="row" style="padding:12px 0"><label class="check"><input type="checkbox" name="email" checked> 메일</label><label class="check"><input type="checkbox" name="sms" checked> 문자</label></div></div>
+              <div style="grid-column:1/-1"><button class="btn" type="submit">등록하기</button></div>
+            </form>
+          </div>
+          <div id="annivList"></div>
+        </section>
+
+        <!-- orders -->
+        <section class="mp-pane" data-pane="orders"><div id="orderList"></div></section>
+        <!-- recipes -->
+        <section class="mp-pane" data-pane="recipes"><div class="grid grid-3" id="recipeList"></div></section>
+        <!-- wish -->
+        <section class="mp-pane" data-pane="wish"><div class="grid grid-3" id="wishList"></div></section>
+        <!-- profile -->
+        <section class="mp-pane" data-pane="profile">
+          <div class="box">
+            <span class="eyebrow">Profile</span>
+            <h2 class="h2" style="margin:8px 0 6px">내 정보</h2>
+            <p class="muted" style="font-size:13px;margin-bottom:22px">알림은 이 연락처로 보내져요 (데모 · 브라우저에만 저장). 생일을 등록하면 3일 전에 20% 쿠폰을 보내 드려요.</p>
+            <form id="profileForm" class="grid grid-2" style="gap:0 20px">
+              <div class="field"><label>이름</label><input class="input" name="name" maxlength="12"></div>
+              <div class="field"><label>내 생일</label><input class="input" type="date" name="birthday"></div>
+              <div class="field"><label>알림 받을 이메일</label><input class="input" type="email" name="email" placeholder="you@example.com"></div>
+              <div class="field"><label>휴대폰</label><input class="input" name="phone" placeholder="010-0000-0000"></div>
+              <div class="field"><label>받을 채널</label><div class="row" style="padding:12px 0"><label class="check"><input type="checkbox" name="cemail"> 메일</label><label class="check"><input type="checkbox" name="csms"> 문자</label></div></div>
+              <div style="grid-column:1/-1" class="row wrap"><button class="btn" type="submit">저장</button><button class="btn btn-ghost" type="button" id="resetAll">데모 데이터 초기화</button><button class="btn btn-ghost" type="button" id="logoutBtn" style="margin-left:auto">로그아웃</button></div>
+            </form>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer"></footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/bottle.js"></script>
+  <script src="js/notify.js"></script>
+  <script src="js/mypage.js"></script>
+</body>
+</html>

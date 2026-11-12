@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gift Finder — SCENT LAB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Noto+Sans+KR:wght@300;400;500&family=Nanum+Pen+Script&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header"></header>
+  <main>
+    <div class="page-head">
+      <span class="eyebrow">Gift Finder</span>
+      <h1 class="h1">누구에게, 어떤 날인가요?</h1>
+      <p>네 가지만 알려주시면 향과 포장, 카드 문구까지 제안해 드려요.</p>
+    </div>
+
+    <section class="section-sm narrow" id="form">
+      <div class="q-block"><div class="h3">01 · 받는 사람</div><div class="chips" data-key="who"></div></div>
+      <div class="q-block"><div class="h3">02 · 어떤 날인가요</div><div class="chips" data-key="occ"></div></div>
+      <div class="q-block"><div class="h3">03 · 원하는 분위기 <span class="muted" style="font-size:13px;font-family:var(--sans)">(선택)</span></div><div class="chips" data-key="mood"></div></div>
+      <div class="q-block"><div class="h3">04 · 예산</div><div class="chips" data-key="budget"></div></div>
+      <div class="q-block">
+        <div class="h3">05 · 받는 분 이름 <span class="muted" style="font-size:13px;font-family:var(--sans)">(라벨·카드에 들어가요)</span></div>
+        <input class="input" id="toName" maxlength="12" placeholder="예) 엄마, 지우" style="max-width:320px">
+      </div>
+      <button class="btn" id="findBtn">추천 받기</button>
+    </section>
+
+    <section class="section-sm container" id="results" style="display:none">
+      <div class="section-head" style="margin-bottom:40px">
+        <span class="eyebrow">Our Suggestion</span>
+        <h2 class="h1" id="resTitle"></h2>
+      </div>
+      <div class="grid" style="grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);align-items:start" id="resGrid">
+        <div class="grid" style="gap:20px" id="recList"></div>
+        <div class="box" style="position:sticky;top:calc(var(--header-h) + 20px)">
+          <span class="eyebrow">Suggested Wrapping</span>
+          <div style="height:220px;margin:16px 0" id="wrapPreview"></div>
+          <p id="wrapDesc" class="muted" style="font-size:13px"></p>
+          <div class="card-preview" id="cardPreview"></div>
+          <a class="btn btn-ghost btn-block" id="annivLink" style="margin-top:22px">이 날을 기념일로 등록 →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer"></footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/bottle.js"></script>
+  <script src="js/notify.js"></script>
+  <script src="js/gift.js"></script>
+</body>
+</html>

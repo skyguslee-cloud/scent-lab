@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atelier — SCENT LAB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Noto+Sans+KR:wght@300;400;500&family=Nanum+Pen+Script&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header"></header>
+  <main>
+    <div class="lab">
+      <section class="lab-panel">
+        <span class="eyebrow">L'Atelier · Custom Parfum</span>
+        <h1 class="h1" style="margin:10px 0 30px">나만의 향을 짓다</h1>
+
+        <div class="stepper" id="stepper">
+          <button data-step="0" class="on"><b>01</b>Scent</button>
+          <button data-step="1"><b>02</b>Flacon</button>
+          <button data-step="2"><b>03</b>Accessories</button>
+          <button data-step="3"><b>04</b>Gift</button>
+        </div>
+
+        <!-- step 1: notes -->
+        <div class="step on" data-step="0">
+          <p class="muted" style="margin-bottom:36px">층마다 1~3개의 향료를 고르고, 슬라이더로 비율을 조절하세요. 병 속 향수의 색이 블렌딩되어 바뀝니다.</p>
+          <div id="tiers"></div>
+        </div>
+
+        <!-- step 2: bottle -->
+        <div class="step" data-step="1">
+          <div class="group"><span class="eyebrow">Bottle Shape</span><div class="opt-grid" id="bottleOpts"></div></div>
+          <div class="group"><span class="eyebrow">Cap</span><div class="opt-grid" id="capOpts"></div></div>
+          <div class="group"><span class="eyebrow">Volume</span><div class="chips" id="sizeOpts"></div></div>
+          <div class="group">
+            <span class="eyebrow">Label Engraving · +₩5,000</span>
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field" style="margin:0"><label for="labelText">각인 문구 (최대 18자)</label><input class="input" id="labelText" maxlength="18" placeholder="예) For Mom, 2026"></div>
+              <div class="field" style="margin:0"><label>글꼴</label><div class="chips" id="fontOpts"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- step 3: accessories -->
+        <div class="step" data-step="2">
+          <p class="muted" style="margin-bottom:28px">같은 레시피로 만들어 함께 보내 드려요. 여러 개 선택할 수 있습니다.</p>
+          <div class="opt-grid" id="accOpts" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))"></div>
+        </div>
+
+        <!-- step 4: gift -->
+        <div class="step" data-step="3">
+          <div class="group"><span class="eyebrow">Wrapping Paper · +₩3,000</span><div class="swatches" id="wrapOpts"></div><p class="muted" id="wrapName" style="font-size:12px;margin-top:8px"></p></div>
+          <div class="group"><span class="eyebrow">Ribbon</span><div class="swatches" id="ribbonOpts"></div></div>
+          <div class="group"><span class="eyebrow">Box</span><div class="opt-grid" id="boxOpts"></div></div>
+          <div class="group">
+            <label class="check"><input type="checkbox" id="cardOn"> 손글씨 메시지 카드 추가 (+₩2,000)</label>
+            <div id="cardArea" style="display:none;margin-top:14px">
+              <div class="chips" id="cardTpl" style="margin-bottom:12px"></div>
+              <textarea class="input" id="cardText" maxlength="120" placeholder="전하고 싶은 마음을 적어 주세요"></textarea>
+              <div class="card-preview" id="cardPreview"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lab-nav">
+          <button class="btn btn-ghost" id="prevBtn">이전</button>
+          <button class="btn" id="nextBtn">다음 단계</button>
+        </div>
+      </section>
+
+      <aside class="lab-preview">
+        <div class="preview-toggle" id="viewToggle">
+          <button data-view="bottle" class="on">Bottle</button>
+          <button data-view="set">Set</button>
+          <button data-view="gift">Gift</button>
+        </div>
+        <div class="preview-stage" id="stage"></div>
+        <div>
+          <div class="row" style="justify-content:center;gap:8px">
+            <div class="recipe-name" id="rName">Untitled</div>
+            <button class="icon-btn" id="nameBtn" title="이름 다시 짓기" aria-label="이름 다시 짓기" style="font-size:16px">↻</button>
+          </div>
+          <div class="recipe-desc" id="rDesc"></div>
+        </div>
+        <div class="radar-wrap"><canvas id="radar"></canvas></div>
+        <div>
+          <button class="price-row" id="priceToggle" style="width:100%;text-align:left">
+            <span class="upper muted">Total ▾</span><span class="total" id="total">₩0</span>
+          </button>
+          <div class="breakdown" id="breakdown"></div>
+        </div>
+        <div class="row">
+          <button class="btn btn-ghost btn-sm" id="saveBtn" style="flex:1">레시피 저장</button>
+          <button class="btn btn-ghost btn-sm" id="shareBtn" style="flex:1">공유 링크</button>
+        </div>
+        <button class="btn btn-block" id="addBtn">장바구니 담기</button>
+      </aside>
+    </div>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/bottle.js"></script>
+  <script src="js/notify.js"></script>
+  <script src="js/lab.js"></script>
+</body>
+</html>
