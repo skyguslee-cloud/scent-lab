@@ -80,15 +80,15 @@ async function afterSignIn(session) {
 
 async function signUp({ name, email, password, phone, birthday }) {
   if (!sb) throw new Error("서버에 연결할 수 없어요. 인터넷 연결을 확인해 주세요.");
-  const { data, error } = await sb.auth.signUp({
-    email, password,
-    options: {
-      data: { name, phone, birthday },
-      emailRedirectTo: location.protocol.startsWith("http") ? location.origin + location.pathname.replace(/[^/]*$/, "") + "login.html" : undefined,
-    },
-  });
+  // the `signup` edge function creates the account already confirmed (no verification email)
+  const { error: fnErr } = await sb.functions.invoke("signup", { body: { name, email, password, phone, birthday } });
+  if (fnErr) {
+    let msg = fnErr.message;
+    try { msg = (await fnErr.context.json()).message || msg; } catch (e) { /* ignore */ }
+    throw new Error(msg);
+  }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error) throw error;
-  if (!data.session) return { needsConfirm: true };
   const res = await afterSignIn(data.session);
   store.set("profile", { name, email, phone: phone || "", birthday: birthday || "", channels: ["email", "sms"] });
   return res;
