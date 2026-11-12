@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payment — SCENT LAB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Noto+Sans+KR:wght@300;400;500&family=Nanum+Pen+Script&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header"></header>
+  <main>
+    <section class="section narrow center" id="box">
+      <span class="eyebrow">Payment</span>
+      <h1 class="h1" style="margin:14px 0">결제를 확인하고 있어요…</h1>
+      <p class="muted">창을 닫지 말고 잠시만 기다려 주세요.</p>
+    </section>
+  </main>
+  <footer class="site-footer"></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/bottle.js"></script>
+  <script src="js/toss.js"></script>
+  <script>
+    (async function () {
+      const box = $("#box");
+      const paymentKey = qs("paymentKey"), orderId = qs("orderId"), amount = Number(qs("amount"));
+      const fail = (title, msg) => {
+        box.innerHTML = `<span class="eyebrow">Payment</span><h1 class="h1" style="margin:14px 0">${esc(title)}</h1>
+          <p class="muted">${esc(msg)}</p><div class="row" style="justify-content:center;margin-top:30px"><a class="btn" href="cart.html">장바구니로 돌아가기</a></div>`;
+      };
+      if (!paymentKey || !orderId || !amount) return fail("잘못된 접근이에요", "결제 정보가 없어요.");
+      if (!currentUser() || !sb) return fail("로그인이 필요해요", "로그인한 뒤 다시 시도해 주세요.");
+
+      // amount in the URL must match what we saved before opening Toss
+      let snap = null;
+      try { snap = JSON.parse(sessionStorage.getItem(PENDING_KEY)); } catch (e) { /* ignore */ }
+      const { data: row } = await sb.from("payments").select("amount, order_data, status").eq("order_id", orderId).maybeSingle();
+      if (row) snap = row.order_data;
+      if (!snap || snap.no !== orderId) return fail("주문을 찾을 수 없어요", "장바구니에서 다시 결제해 주세요.");
+      if (row && row.amount !== amount) return fail("결제 금액이 달라요", "주문 금액과 결제 금액이 일치하지 않아 결제를 승인하지 않았어요.");
+
+      // server-side confirm (secret key stays on the server)
+      const { data, error } = await sb.functions.invoke("toss-confirm", { body: { paymentKey, orderId, amount } });
+      if (error) {
+        let msg = error.message;
+        try { const j = await error.context.json(); msg = j.message || msg; } catch (e) { /* ignore */ }
+        return fail("결제 승인에 실패했어요", msg);
+      }
+      const pay = data.payment;
+      const isNew = finalizeOrder(snap, pay);
+      if (isNew) celebrate();
+      history.replaceState(null, "", "pay-success.html?orderId=" + encodeURIComponent(orderId) + "&done=1");
+
+      box.innerHTML = `
+        <span class="eyebrow">Merci</span>
+        <h1 class="h1" style="margin:14px 0">결제가 완료되었어요</h1>
+        <p class="muted">주문번호 <b class="serif" style="font-size:20px;color:var(--ink)">${esc(orderId)}</b></p>
+        <div class="box" style="max-width:440px;margin:30px auto;text-align:left">
+          <div class="row between"><span class="muted">상품</span><span>${esc(pay.orderName || "")}</span></div>
+          <div class="row between" style="margin-top:8px"><span class="muted">결제 금액</span><span class="serif" style="font-size:22px">${won(pay.totalAmount)}</span></div>
+          <div class="row between" style="margin-top:8px"><span class="muted">결제 수단</span><span>${esc(pay.method || "")}${pay.easyPay ? " · " + esc(pay.easyPay) : ""}</span></div>
+          <div class="row between" style="margin-top:8px"><span class="muted">받는 분</span><span>${esc(snap.gift ? snap.to + "님께 선물" : "본인 수령")}</span></div>
+          <p class="muted" style="font-size:11px;margin-top:14px">토스페이먼츠 테스트 결제라 실제로 출금되지 않았어요.</p>
+        </div>
+        <div class="row wrap" style="justify-content:center">
+          ${pay.receiptUrl ? `<a class="btn btn-ghost btn-sm" href="${esc(pay.receiptUrl)}" target="_blank" rel="noopener">영수증 보기</a>` : ""}
+          <a class="btn btn-ghost btn-sm" href="index.html">홈으로</a>
+          <a class="btn btn-sm" href="mypage.html#orders">주문 내역 보기</a>
+        </div>`;
+    })();
+  </script>
+</body>
+</html>

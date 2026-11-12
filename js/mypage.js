@@ -158,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="pill ${st === 4 ? "sent" : "wait"}">${STAGES[st]}</span></div>
         <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:22px 0 8px">${STAGES.map((s, i) => `<div style="height:3px;background:${i <= st ? "var(--gold)" : "var(--line)"}"></div>`).join("")}</div>
         <div style="display:grid;grid-template-columns:repeat(5,1fr);font-size:11px" class="muted">${STAGES.map((s, i) => `<span style="${i === st ? "color:var(--ink)" : ""}">${s}</span>`).join("")}</div>
-        <p class="muted" style="font-size:12px;margin-top:16px">${o.gift ? "🎁 " + esc(o.to) + "님께 선물" : "본인 수령"} · ${esc(o.addr)}</p>
+        <p class="muted" style="font-size:12px;margin-top:16px">${o.gift ? "🎁 " + esc(o.to) + "님께 선물" : "본인 수령"} · ${esc(o.addr)}${o.method ? ` · 결제 ${esc(o.method)}` : ""}${o.receiptUrl ? ` · <a class="link" style="font-size:10px" href="${esc(o.receiptUrl)}" target="_blank" rel="noopener">영수증</a>` : ""}</p>
         <p class="muted" style="font-size:11px;margin-top:4px">데모 시계를 하루씩 옮기면 배송 단계가 진행돼요.</p>
       </div>`;
     }).join("") : `<div class="empty">아직 주문 내역이 없어요.<br><br><a class="btn" href="shop.html">쇼핑하러 가기</a></div>`;

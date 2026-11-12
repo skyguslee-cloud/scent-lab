@@ -1,4 +1,4 @@
-/* ============ SCENT LAB — Bag & checkout (demo, no real payment) ============ */
+/* ============ SCENT LAB — Bag & checkout (Toss Payments test mode) ============ */
 (function () {
   const COUPONS = {
     SCENT10: { rate: 0.1, label: "선물 쿠폰 10%" },
@@ -6,7 +6,8 @@
     WELCOME: { amount: 5000, label: "첫 구매 5,000원" },
   };
   let coupon = null;
-  let pay = "card";
+  let widgets = null;      // Toss payment widget instance (members only)
+  let widgetReady = false;
   const root = $("#cartRoot");
 
   function itemView(it) {
@@ -22,13 +23,14 @@
         r.gift.card ? "메시지 카드 포함" : "",
       ].filter(Boolean);
       return {
+        title: r.name,
         media: renderBottle({ shape: r.bottle, cap: r.cap, notes: r.notes, label: r.label.text, labelFont: r.label.font, size: r.size, animate: false }),
         name: esc(r.name) + ' <span class="pill" style="vertical-align:middle;margin-left:6px">Custom</span>',
         opts: `${notes}<br>${extras.join("<br>")}`,
       };
     }
     const p = productById(it.id);
-    return { media: productVisual(p), name: p.name, opts: `${p.ko} · ${p.sub}${it.size ? ` · ${it.size}ml` : ""}` };
+    return { title: p.name, media: productVisual(p), name: p.name, opts: `${p.ko} · ${p.sub}${it.size ? ` · ${it.size}ml` : ""}` };
   }
 
   function totals() {
@@ -40,6 +42,7 @@
     return { items, sub, disc, ship, total: sub - disc + ship };
   }
 
+  /* ---------- full layout (built once; parts are refreshed in place so typed form values survive) ---------- */
   function render() {
     const t = totals();
     if (!t.items.length) {
@@ -48,21 +51,11 @@
       return;
     }
     const p = profile();
+    const me = currentUser();
     root.innerHTML = `
       <div class="cart">
         <div>
-          <div id="items">${t.items.map((it) => {
-            const v = itemView(it);
-            return `<div class="cart-item" data-key="${it.key}">
-              <div class="media">${v.media}</div>
-              <div><div class="serif" style="font-size:22px;line-height:1.2">${v.name}</div><div class="opts" style="margin:6px 0 12px">${v.opts}</div>
-                <div class="row"><div class="qty"><button data-q="-1" aria-label="수량 줄이기">−</button><span>${it.qty}</span><button data-q="1" aria-label="수량 늘리기">+</button></div>
-                ${it.type === "custom" ? `<button class="link" data-edit style="font-size:10px">수정</button>` : ""}
-                <button class="link" data-del style="font-size:10px">삭제</button></div></div>
-              <div class="serif" style="font-size:20px">${won(it.price * it.qty)}</div>
-            </div>`;
-          }).join("")}</div>
-
+          <div id="items"></div>
           <form id="checkout" class="section-sm" novalidate>
             <h2 class="h2" style="margin-bottom:28px">주문 정보</h2>
             <div class="grid grid-2" style="gap:0 20px">
@@ -88,58 +81,109 @@
                 <div class="field" style="margin:0"><label>종류</label><select class="input" name="akind"><option value="birthday">생일</option><option value="anniversary">기념일</option><option value="etc">특별한 날</option></select></div>
               </div>
             </div>
-            <h3 class="eyebrow" style="margin:30px 0 14px">결제 수단 (데모 · 실제 결제 없음)</h3>
-            <div class="pay-opts" id="payOpts">
-              ${[["card", "신용카드"], ["kakao", "카카오페이"], ["naver", "네이버페이"], ["toss", "토스페이"], ["bank", "무통장입금"], ["phone", "휴대폰"]].map(([id, l]) => `<button type="button" class="chip ${pay === id ? "on" : ""}" data-pay="${id}">${l}</button>`).join("")}
+            <div class="row between wrap" style="margin:34px 0 10px">
+              <h3 class="eyebrow">결제 수단 · 토스페이먼츠</h3>
+              <span class="pill wait">테스트 모드 · 실제 출금 없음</span>
             </div>
-            <label class="check" style="margin-top:24px"><input type="checkbox" name="agree" required> 주문 내용을 확인했으며 데모 결제에 동의합니다 *</label>
+            ${me ? `<div id="payment-method"></div><div id="agreement"></div>
+                    <p class="muted" id="widgetMsg" style="font-size:12px">결제 수단을 불러오는 중…</p>`
+                 : `<div class="box center"><p class="muted" style="margin-bottom:16px">로그인하면 카드·간편결제·계좌이체 등 토스페이먼츠 결제 수단이 나타나요.<br>장바구니는 그대로 옮겨 드려요.</p>
+                    <a class="btn btn-sm" href="login.html?next=cart.html">로그인 / 회원가입</a></div>`}
           </form>
         </div>
-
-        <aside class="summary">
-          <span class="eyebrow">Order Summary</span>
-          <div style="margin:22px 0">
-            <div class="line"><span>상품 금액</span><span>${won(t.sub)}</span></div>
-            <div class="line"><span>쿠폰 할인 ${coupon ? `<span class="gold" style="font-size:11px">${COUPONS[coupon].label}</span>` : ""}</span><span>${t.disc ? "−" + won(t.disc) : won(0)}</span></div>
-            <div class="line"><span>배송비</span><span>${t.ship ? won(t.ship) : "무료"}</span></div>
-            ${t.ship ? `<p class="muted" style="font-size:11px">${won(100000 - (t.sub - t.disc))} 더 담으면 무료배송</p>` : ""}
-          </div>
-          <div class="row" style="margin-bottom:22px">
-            <input class="input" id="couponIn" placeholder="쿠폰 코드" value="${coupon || ""}" style="padding:10px 12px">
-            <button class="btn btn-ghost btn-sm" id="applyCoupon">적용</button>
-          </div>
-          <p class="muted" style="font-size:11px;margin:-12px 0 20px">사용 가능: SCENT10 · BDAY20 · WELCOME</p>
-          <div class="line" style="border-top:1px solid var(--line);padding-top:18px;align-items:baseline"><span class="upper">Total</span><span class="total">${won(t.total)}</span></div>
-          <button class="btn btn-block" id="payBtn" style="margin-top:18px">${won(t.total)} 결제하기</button>
-          <p class="muted center" style="font-size:11px;margin-top:12px">과제용 데모 · 실제로 결제되지 않아요</p>
-        </aside>
+        <aside class="summary" id="summary"></aside>
       </div>`;
-    bind();
+    renderItems(t);
+    renderSummary(t);
+    bindForm();
+    if (me) initWidget(t.total);
   }
 
-  function bind() {
+  function renderItems(t = totals()) {
+    $("#items").innerHTML = t.items.map((it) => {
+      const v = itemView(it);
+      return `<div class="cart-item" data-key="${it.key}">
+        <div class="media">${v.media}</div>
+        <div><div class="serif" style="font-size:22px;line-height:1.2">${v.name}</div><div class="opts" style="margin:6px 0 12px">${v.opts}</div>
+          <div class="row"><div class="qty"><button data-q="-1" aria-label="수량 줄이기">−</button><span>${it.qty}</span><button data-q="1" aria-label="수량 늘리기">+</button></div>
+          ${it.type === "custom" ? `<button class="link" data-edit style="font-size:10px">수정</button>` : ""}
+          <button class="link" data-del style="font-size:10px">삭제</button></div></div>
+        <div class="serif" style="font-size:20px">${won(it.price * it.qty)}</div>
+      </div>`;
+    }).join("");
+  }
+
+  function renderSummary(t = totals()) {
+    $("#summary").innerHTML = `
+      <span class="eyebrow">Order Summary</span>
+      <div style="margin:22px 0">
+        <div class="line"><span>상품 금액</span><span>${won(t.sub)}</span></div>
+        <div class="line"><span>쿠폰 할인 ${coupon ? `<span class="gold" style="font-size:11px">${COUPONS[coupon].label}</span>` : ""}</span><span>${t.disc ? "−" + won(t.disc) : won(0)}</span></div>
+        <div class="line"><span>배송비</span><span>${t.ship ? won(t.ship) : "무료"}</span></div>
+        ${t.ship ? `<p class="muted" style="font-size:11px">${won(100000 - (t.sub - t.disc))} 더 담으면 무료배송</p>` : ""}
+      </div>
+      <div class="row" style="margin-bottom:22px">
+        <input class="input" id="couponIn" placeholder="쿠폰 코드" value="${coupon || ""}" style="padding:10px 12px">
+        <button class="btn btn-ghost btn-sm" id="applyCoupon">적용</button>
+      </div>
+      <p class="muted" style="font-size:11px;margin:-12px 0 20px">사용 가능: SCENT10 · BDAY20 · WELCOME</p>
+      <div class="line" style="border-top:1px solid var(--line);padding-top:18px;align-items:baseline"><span class="upper">Total</span><span class="total">${won(t.total)}</span></div>
+      <button class="btn btn-block" id="payBtn" style="margin-top:18px">${currentUser() ? won(t.total) + " 결제하기" : "로그인하고 결제하기"}</button>
+      <p class="muted center" style="font-size:11px;margin-top:12px">토스페이먼츠 테스트 결제 · 실제로 돈이 나가지 않아요</p>`;
+    $("#applyCoupon").onclick = () => {
+      const c = $("#couponIn").value.trim().toUpperCase();
+      if (!COUPONS[c]) return toast("유효하지 않은 쿠폰이에요", "!");
+      coupon = c;
+      toast(`${COUPONS[c].label} 할인이 적용됐어요`, "🏷");
+      refresh();
+    };
+    $("#payBtn").onclick = placeOrder;
+  }
+
+  /* qty / delete / coupon: refresh parts and keep the widget amount in sync */
+  function refresh() {
+    const t = totals();
+    if (!t.items.length) { render(); return; }
+    renderItems(t);
+    renderSummary(t);
+    if (widgets && widgetReady) widgets.setAmount({ currency: "KRW", value: t.total }).catch(() => {});
+  }
+
+  function bindForm() {
     $("#items").onclick = (e) => {
       const row = e.target.closest(".cart-item");
       if (!row) return;
       const items = cart.items();
       const it = items.find((i) => i.key === row.dataset.key);
-      const q = e.target.closest("[data-q]");
-      if (q) { it.qty = Math.max(1, Math.min(9, it.qty + Number(q.dataset.q))); cart.save(items); render(); }
-      if (e.target.closest("[data-del]")) { cart.save(items.filter((i) => i !== it)); toast("삭제했어요", "×"); render(); }
+      if (e.target.closest("[data-q]")) { it.qty = Math.max(1, Math.min(9, it.qty + Number(e.target.closest("[data-q]").dataset.q))); cart.save(items); refresh(); }
+      if (e.target.closest("[data-del]")) { cart.save(items.filter((i) => i !== it)); toast("삭제했어요", "×"); refresh(); }
       if (e.target.closest("[data-edit]")) { cart.save(items.filter((i) => i !== it)); openInLab(it.recipe); }
-    };
-    $("#applyCoupon").onclick = () => {
-      const c = $("#couponIn").value.trim().toUpperCase();
-      if (!COUPONS[c]) return toast("유효하지 않은 쿠폰이에요", "!");
-      coupon = c; toast(`${COUPONS[c].label} 할인이 적용됐어요`, "🏷"); render();
     };
     $("#isGift").onchange = (e) => ($("#giftFields").style.display = e.target.checked ? "" : "none");
     $("#remember").onchange = (e) => ($("#rememberFields").style.display = e.target.checked ? "" : "none");
-    $("#payOpts").onclick = (e) => { const b = e.target.closest("[data-pay]"); if (b) { pay = b.dataset.pay; $$("#payOpts .chip").forEach((x) => x.classList.toggle("on", x === b)); } };
-    $("#payBtn").onclick = placeOrder;
   }
 
-  function placeOrder() {
+  /* ---------- Toss payment widget ---------- */
+  async function initWidget(amount) {
+    const msg = $("#widgetMsg");
+    if (!window.TossPayments) { msg.textContent = "결제 모듈을 불러오지 못했어요. 새로고침해 주세요."; return; }
+    try {
+      const tp = TossPayments(TOSS_CLIENT_KEY);
+      widgets = tp.widgets({ customerKey: currentUser().id });
+      await widgets.setAmount({ currency: "KRW", value: amount });
+      await Promise.all([
+        widgets.renderPaymentMethods({ selector: "#payment-method", variantKey: "DEFAULT" }),
+        widgets.renderAgreement({ selector: "#agreement", variantKey: "AGREEMENT" }),
+      ]);
+      widgetReady = true;
+      msg.textContent = "테스트 결제예요. 카드 정보를 입력해도 실제로 청구되지 않아요.";
+    } catch (err) {
+      console.warn(err);
+      msg.textContent = "결제 수단을 불러오지 못했어요: " + (err.message || err);
+    }
+  }
+
+  async function placeOrder() {
     if (!currentUser()) {
       toast("주문하려면 로그인해 주세요. 장바구니는 그대로 옮겨 드려요", "🔒");
       setTimeout(() => (location.href = "login.html?next=cart.html"), 900);
@@ -150,35 +194,47 @@
     const need = ["name", "phone", "addr", ...(gift ? ["rname", "rphone"] : [])];
     const missing = need.filter((n) => !f[n].value.trim());
     if (missing.length) { f[missing[0]].focus(); f[missing[0]].style.borderColor = "var(--danger)"; return toast("필수 정보를 입력해 주세요", "!"); }
-    if (!f.agree.checked) return toast("주문 확인에 동의해 주세요", "!");
+    if (!widgetReady) return toast("결제 수단을 불러오는 중이에요. 잠시만 기다려 주세요", "…");
+
     const t = totals();
-    const no = "SL" + fmtDate(today()).replace(/\./g, "").slice(2) + "-" + Math.floor(1000 + Math.random() * 9000);
-    const orders = store.get("orders", []);
-    orders.unshift({ no, at: fmtDate(today()), atTime: today().getTime(), items: t.items, total: t.total, pay, gift, to: gift ? f.rname.value : f.name.value, addr: f.addr.value });
-    store.set("orders", orders);
-    const pr = profile();
-    if (!pr.name) store.set("profile", { ...pr, name: f.name.value, phone: f.phone.value });
-    if ($("#remember").checked && f.adate.value) {
-      const list = annivs();
-      list.push({ id: uid(), name: gift ? f.rname.value : f.name.value, relation: "friend", kind: f.akind.value, date: f.adate.value, daysBefore: 7, channels: ["email", "sms"] });
-      store.set("annivs", list);
+    const me = currentUser();
+    const orderId = "SL" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
+    const first = itemView(t.items[0]).title;
+    const count = t.items.reduce((s, i) => s + i.qty, 0);
+    const orderName = (count > 1 ? `${first} 외 ${count - 1}건` : first).slice(0, 100);
+    const snap = {
+      no: orderId, at: fmtDate(today()), atTime: today().getTime(), items: t.items, total: t.total, coupon,
+      gift, to: gift ? f.rname.value.trim() : f.name.value.trim(), addr: f.addr.value.trim(), memo: f.memo.value.trim(), wantDate: f.date.value,
+      fill: { name: f.name.value.trim(), phone: f.phone.value.trim() },
+      remember: $("#remember").checked && f.adate.value ? { name: gift ? f.rname.value.trim() : f.name.value.trim(), kind: f.akind.value, date: f.adate.value } : null,
+    };
+
+    const btn = $("#payBtn");
+    btn.disabled = true; btn.textContent = "결제창을 여는 중…";
+    // 1) save orderId + amount on the server first so the confirm step can verify them
+    const { error } = await sb.from("payments").insert({ order_id: orderId, user_id: me.id, amount: t.total, order_name: orderName, order_data: snap });
+    if (error) {
+      btn.disabled = false; btn.textContent = won(t.total) + " 결제하기";
+      return toast("주문을 저장하지 못했어요: " + error.message, "!");
     }
-    cart.save([]);
-    if (window.confetti) {
-      const c = ["#b0905f", "#d8c3a0", "#111111", "#e9c3c0"];
-      confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 }, colors: c });
-      setTimeout(() => confetti({ particleCount: 80, angle: 60, spread: 60, origin: { x: 0 }, colors: c }), 250);
-      setTimeout(() => confetti({ particleCount: 80, angle: 120, spread: 60, origin: { x: 1 }, colors: c }), 400);
+    try { sessionStorage.setItem(PENDING_KEY, JSON.stringify(snap)); } catch (e) { /* ignore */ }
+
+    // 2) open Toss checkout; it redirects to pay-success.html or pay-fail.html
+    const phone = f.phone.value.replace(/\D/g, "");
+    try {
+      await widgets.requestPayment({
+        orderId, orderName,
+        successUrl: siteBase() + "pay-success.html",
+        failUrl: siteBase() + "pay-fail.html",
+        customerEmail: profile().email || me.email,
+        customerName: f.name.value.trim().slice(0, 100),
+        ...(/^\d{8,15}$/.test(phone) ? { customerMobilePhone: phone } : {}),
+      });
+    } catch (err) {
+      // user closed the window, etc.
+      btn.disabled = false; btn.textContent = won(t.total) + " 결제하기";
+      toast(err.code === "USER_CANCEL" ? "결제를 취소했어요" : "결제를 열지 못했어요: " + (err.message || err), "!");
     }
-    render();
-    openModal(`<div class="center">
-      <span class="eyebrow">Merci</span>
-      <h2 class="h2" style="margin:12px 0">주문이 완료되었어요</h2>
-      <p class="muted">주문번호 <b class="serif" style="font-size:20px;color:var(--ink)">${no}</b></p>
-      <p style="margin:18px 0 6px">${won(t.total)} · ${esc(gift ? f.rname.value + "님께 선물" : "본인 수령")}</p>
-      <p class="muted" style="font-size:12px">조향사가 레시피대로 블렌딩한 뒤 2~3일 내 출고됩니다 (데모)</p>
-      <div class="row" style="justify-content:center;margin-top:28px"><a class="btn btn-ghost btn-sm" href="index.html">홈으로</a><a class="btn btn-sm" href="mypage.html#orders">주문 내역 보기</a></div>
-    </div>`);
   }
 
   render();

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payment failed — SCENT LAB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Noto+Sans+KR:wght@300;400;500&family=Nanum+Pen+Script&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header"></header>
+  <main>
+    <section class="section narrow center" id="box"></section>
+  </main>
+  <footer class="site-footer"></footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    const code = qs("code") || "UNKNOWN";
+    const canceled = code === "PAY_PROCESS_CANCELED";
+    $("#box").innerHTML = `
+      <span class="eyebrow">Payment</span>
+      <h1 class="h1" style="margin:14px 0">${canceled ? "결제를 취소했어요" : "결제에 실패했어요"}</h1>
+      <p class="muted">${esc(qs("message") || "다시 시도해 주세요.")}</p>
+      <p class="muted" style="font-size:12px;margin-top:8px">오류 코드 ${esc(code)}${qs("orderId") ? " · 주문번호 " + esc(qs("orderId")) : ""}</p>
+      <p style="margin-top:14px">장바구니는 그대로 남아 있어요.</p>
+      <div class="row" style="justify-content:center;margin-top:30px"><a class="btn" href="cart.html">장바구니로 돌아가기</a></div>`;
+  </script>
+</body>
+</html>

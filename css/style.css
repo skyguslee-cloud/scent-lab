@@ -129,9 +129,10 @@ main { padding-top: var(--header-h); min-height: 70vh; }
 .burger { display: none; }
 .mobile-nav {
   position: fixed; inset: var(--header-h) 0 0 0; background: var(--bg); z-index: 49; padding: 40px 32px;
-  display: flex; flex-direction: column; gap: 26px; transform: translateY(-110%); transition: transform .5s var(--ease);
+  display: flex; flex-direction: column; gap: 26px; transform: translateY(-110%); transition: transform .5s var(--ease), visibility 0s .5s;
+  overflow-y: auto; visibility: hidden;
 }
-.mobile-nav.open { transform: none; }
+.mobile-nav.open { transform: none; visibility: visible; transition: transform .5s var(--ease); }
 .mobile-nav a { font-family: var(--serif); font-size: 30px; }
 
 /* ============ footer ============ */

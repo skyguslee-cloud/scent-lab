@@ -22,6 +22,12 @@
 - `index.html`을 더블클릭해 브라우저로 열면 됩니다.
 - 로컬 서버로 보고 싶다면: `node .claude/serve.js` → http://localhost:5173
 
+## 토스페이먼츠 결제 (테스트 모드)
+- 장바구니에서 로그인하면 토스페이먼츠 **결제위젯**(카드·간편결제·계좌이체 등)이 나옵니다. 토스페이먼츠 개발자 문서에 공개된 **문서용 테스트 키**를 써서 실제로 돈이 나가지 않습니다.
+- 흐름: 결제하기 → 주문번호·금액을 서버(`payments` 테이블)에 먼저 저장 → 토스 결제창 → `pay-success.html` → Supabase Edge Function `toss-confirm`이 금액·주문자를 확인하고 시크릿 키로 결제 승인 → 주문 내역에 저장(영수증 링크 포함). 실패·취소는 `pay-fail.html`.
+- 클라이언트 키: [js/toss.js](js/toss.js) / 시크릿 키: Edge Function 안에만 있음 ([supabase/functions/toss-confirm/index.ts](supabase/functions/toss-confirm/index.ts)).
+- 내 토스페이먼츠 상점 키로 바꾸려면: `js/toss.js`의 `TOSS_CLIENT_KEY`를 바꾸고, Supabase 대시보드 → Edge Functions → Secrets에 `TOSS_SECRET_KEY`를 추가하세요. 시크릿 키는 절대 프론트엔드 코드나 GitHub에 넣지 마세요.
+
 ## 페이지와 기능
 | 페이지 | 기능 |
 |---|---|
@@ -30,7 +36,8 @@
 | `gift.html` 선물 추천 | 받는 사람 × 상황 × 분위기 × 예산 → 추천 3개와 추천 이유, 상황별 포장·카드 문구 제안, 아틀리에로 그대로 가져가기 |
 | `quiz.html` 향 테스트 | 7문항 → 향 타입 결과, 레이더 차트, 맞춤 레시피 |
 | `shop.html` / `product.html` | 카테고리·향 계열 필터, 정렬, 검색, 위시리스트, 용량별 가격, 노트 피라미드, 리뷰, 연관 상품 |
-| `cart.html` | 수량 변경, 쿠폰(SCENT10 · BDAY20 · WELCOME), 무료배송 기준, 선물 배송 정보, 데모 결제 + 컨페티 |
+| `cart.html` | 수량 변경, 쿠폰(SCENT10 · BDAY20 · WELCOME), 무료배송 기준, 선물 배송 정보, 토스페이먼츠 결제위젯(테스트) |
+| `pay-success.html` / `pay-fail.html` | 서버 결제 승인, 영수증 링크, 컨페티 / 실패·취소 안내 |
 | `mypage.html` | 알림 센터(메일·문자 미리보기), 기념일 관리(D-day), 주문 배송 단계, 저장한 레시피, 위시리스트, 내 정보 |
 
 공통: 다크 모드, 모바일 반응형, 장바구니·알림 배지, 토스트 알림.
