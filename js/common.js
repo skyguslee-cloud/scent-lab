@@ -237,7 +237,7 @@ function renderChrome() {
       <div class="container">
         <div class="row">
           <button class="icon-btn burger" aria-label="메뉴">${ICON.menu}</button>
-          <nav class="nav">${NAV.map((n) => `<a href="${n.href}" class="${page === n.href ? "active" : ""}">${n.label}</a>`).join("")}</nav>
+          <nav class="nav">${NAV.map((n) => `<a href="${n.href}" class="${page === n.href ? "active" : ""}">${n.label}</a>`).join("")}${me?.isAdmin ? `<a href="admin.html" class="${page === "admin.html" ? "active" : ""}" style="color:var(--gold)">Admin</a>` : ""}</nav>
         </div>
         <a href="index.html" class="logo">SCENT LAB<small>MAISON DE PARFUM</small></a>
         <div class="header-icons">
@@ -252,7 +252,7 @@ function renderChrome() {
     const mnav = document.createElement("nav");
     mnav.className = "mobile-nav";
     mnav.innerHTML = NAV.map((n) => `<a href="${n.href}">${n.label}</a>`).join("") +
-      (me ? `<a href="mypage.html">My Page</a><a href="#" id="logoutM">Logout</a>` : `<a href="login.html">Login · Join</a>`) +
+      (me ? `${me.isAdmin ? `<a href="admin.html" style="color:var(--gold)">Admin</a>` : ""}<a href="mypage.html">My Page</a><a href="#" id="logoutM">Logout</a>` : `<a href="login.html">Login · Join</a>`) +
       `<button class="btn btn-ghost" id="themeBtnM">다크 모드 전환</button>`;
     document.body.appendChild(mnav);
     $(".burger", hdr).addEventListener("click", () => mnav.classList.toggle("open"));

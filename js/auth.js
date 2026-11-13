@@ -67,8 +67,13 @@ function setUser(session, extra = {}) {
   try { sessionStorage.setItem("sl_synced_" + u.id, "1"); } catch (e) { /* ignore */ }
   return u;
 }
+async function checkAdmin() {
+  if (!sb) return false;
+  const { data, error } = await sb.rpc("is_admin");
+  return !error && data === true;
+}
 async function afterSignIn(session) {
-  const u = setUser(session);
+  const u = setUser(session, { isAdmin: await checkAdmin() });
   await syncPull(u);
   // make sure the alert profile has the account's email & name
   const p = store.get("profile", null);
@@ -134,6 +139,13 @@ function authErrorKo(err) {
   const { data } = await sb.auth.getSession();
   if (!data.session || data.session.user.id !== u.id) {
     localStorage.removeItem("sl_currentUser");
+    location.reload();
+    return;
+  }
+  // keep the admin flag fresh (granted/revoked on the server)
+  const isAdmin = await checkAdmin();
+  if (!!u.isAdmin !== isAdmin) {
+    localStorage.setItem("sl_currentUser", JSON.stringify({ ...u, isAdmin }));
     location.reload();
     return;
   }

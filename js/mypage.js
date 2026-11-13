@@ -147,19 +147,35 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* ---------- orders ---------- */
-  const STAGES = ["결제 완료", "블렌딩", "숙성·포장", "배송 중", "배송 완료"];
+  const STAGES = ["결제 완료", "제작 중", "배송 중", "배송 완료"];
+  const SHIP_IDX = { PAID: 0, MAKING: 1, SHIPPING: 2, DELIVERED: 3 };
+  let shipInfo = {}; // order_id -> shipping info the admin set (from the server)
+  async function loadShipInfo() {
+    const u = currentUser();
+    if (!u || typeof sb === "undefined" || !sb) return;
+    const { data, error } = await sb.from("payments")
+      .select("order_id, ship_status, carrier, tracking_no, shipped_at")
+      .eq("user_id", u.id).eq("status", "DONE");
+    if (error || !data) return;
+    shipInfo = Object.fromEntries(data.map((r) => [r.order_id, r]));
+    renderOrders();
+  }
   function renderOrders() {
     const orders = store.get("orders", []);
     $("#orderList").innerHTML = orders.length ? orders.map((o) => {
-      const days = Math.max(0, Math.round((today().getTime() - (o.atTime || today().getTime())) / DAY));
-      const st = Math.min(4, days);
+      const s = shipInfo[o.no];
+      const canceled = s?.ship_status === "CANCELED";
+      // real status from the admin when the order went through Toss; demo orders follow the demo clock
+      const st = s ? (SHIP_IDX[s.ship_status] ?? 0) : Math.min(3, Math.max(0, Math.round((today().getTime() - (o.atTime || today().getTime())) / DAY)));
       return `<div class="box">
         <div class="row between wrap"><div><span class="eyebrow">${o.at} · ${o.no}</span><div class="serif" style="font-size:22px;margin-top:4px">${o.items.length}개 상품 · ${won(o.total)}</div></div>
-          <span class="pill ${st === 4 ? "sent" : "wait"}">${STAGES[st]}</span></div>
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:22px 0 8px">${STAGES.map((s, i) => `<div style="height:3px;background:${i <= st ? "var(--gold)" : "var(--line)"}"></div>`).join("")}</div>
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);font-size:11px" class="muted">${STAGES.map((s, i) => `<span style="${i === st ? "color:var(--ink)" : ""}">${s}</span>`).join("")}</div>
-        <p class="muted" style="font-size:12px;margin-top:16px">${o.gift ? "🎁 " + esc(o.to) + "님께 선물" : "본인 수령"} · ${esc(o.addr)}${o.method ? ` · 결제 ${esc(o.method)}` : ""}${o.receiptUrl ? ` · <a class="link" style="font-size:10px" href="${esc(o.receiptUrl)}" target="_blank" rel="noopener">영수증</a>` : ""}</p>
-        <p class="muted" style="font-size:11px;margin-top:4px">데모 시계를 하루씩 옮기면 배송 단계가 진행돼요.</p>
+          <span class="pill ${canceled ? "" : st === 3 ? "sent" : "wait"}" ${canceled ? 'style="color:var(--danger);border-color:var(--danger)"' : ""}>${canceled ? "주문 취소" : STAGES[st]}</span></div>
+        ${canceled ? "" : `
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:22px 0 8px">${STAGES.map((x, i) => `<div style="height:3px;background:${i <= st ? "var(--gold)" : "var(--line)"}"></div>`).join("")}</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);font-size:11px" class="muted">${STAGES.map((x, i) => `<span style="${i === st ? "color:var(--ink)" : ""}">${x}</span>`).join("")}</div>`}
+        ${s?.tracking_no ? `<p style="font-size:13px;margin-top:16px">🚚 ${esc(s.carrier || "택배")} · 송장번호 <b>${esc(s.tracking_no)}</b></p>` : ""}
+        <p class="muted" style="font-size:12px;margin-top:${s?.tracking_no ? 6 : 16}px">${o.gift ? "🎁 " + esc(o.to) + "님께 선물" : "본인 수령"} · ${esc(o.addr)}${o.method ? ` · 결제 ${esc(o.method)}` : ""}${o.receiptUrl ? ` · <a class="link" style="font-size:10px" href="${esc(o.receiptUrl)}" target="_blank" rel="noopener">영수증</a>` : ""}</p>
+        <p class="muted" style="font-size:11px;margin-top:4px">${s ? "배송 상태는 SCENT LAB에서 처리하면 바로 바뀌어요." : "데모 주문이라 데모 시계를 하루씩 옮기면 배송 단계가 진행돼요."}</p>
       </div>`;
     }).join("") : `<div class="empty">아직 주문 내역이 없어요.<br><br><a class="btn" href="shop.html">쇼핑하러 가기</a></div>`;
   }
@@ -214,6 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   runNotifications(false);
   fillProfile();
+  loadShipInfo();
   refresh();
   showTab(location.hash.slice(1) || "alerts");
 });

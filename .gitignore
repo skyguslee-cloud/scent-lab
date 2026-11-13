@@ -7,3 +7,6 @@ Thumbs.db
 
 .vercel
 .env*
+
+# local-only secrets (admin account etc.)
+*.local.txt

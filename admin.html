@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin — SCENT LAB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Noto+Sans+KR:wght@300;400;500&family=Nanum+Pen+Script&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 36px; }
+    .kpi { border: 1px solid var(--line); padding: 22px; background: var(--card); }
+    .kpi .v { font-family: var(--serif); font-size: 32px; line-height: 1.1; margin-top: 8px; }
+    .kpi .s { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .table-wrap { overflow-x: auto; border-top: 1px solid var(--ink); }
+    table.orders { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 920px; }
+    table.orders th { text-align: left; font-weight: 400; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); padding: 14px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    table.orders td { padding: 14px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    table.orders tbody tr { cursor: pointer; transition: background .2s; }
+    table.orders tbody tr:hover { background: var(--bg-soft); }
+    table.orders td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .st { display: inline-block; font-size: 11px; padding: 3px 8px; border: 1px solid var(--line); white-space: nowrap; }
+    .st.PAID { border-color: var(--gold); color: var(--gold); }
+    .st.MAKING { border-color: #7a6fb0; color: #7a6fb0; }
+    .st.SHIPPING { border-color: #3f6fa0; color: #3f6fa0; }
+    .st.DELIVERED { border-color: var(--ok); color: var(--ok); }
+    .st.CANCELED, .st.FAILED { border-color: var(--danger); color: var(--danger); }
+    .st.READY { color: var(--muted); }
+    .detail h3 { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); font-weight: 400; margin: 26px 0 10px; }
+    .kv { display: grid; grid-template-columns: 110px 1fr; gap: 6px 14px; font-size: 13px; }
+    .kv dt { color: var(--muted); }
+    .recipe { border: 1px solid var(--line); padding: 16px; margin-bottom: 12px; display: grid; grid-template-columns: 90px 1fr; gap: 16px; }
+    .recipe .media { background: var(--bg-soft); height: 120px; display: grid; place-items: center; }
+    .recipe .media svg { height: 88%; }
+    .note-row { display: grid; grid-template-columns: 70px 1fr 44px; gap: 8px; align-items: center; font-size: 12px; margin: 3px 0; }
+    .note-row .bar { height: 6px; background: var(--line); }
+    .note-row .bar i { display: block; height: 100%; }
+    .modal { max-width: 760px; }
+    @media (max-width: 860px) { .kpis { grid-template-columns: 1fr 1fr; } .recipe { grid-template-columns: 1fr; } }
+    @media print {
+      body.print-mode > *:not(#modal) { display: none !important; }
+      body.print-mode #modal { position: static; background: none; opacity: 1; }
+      body.print-mode .modal { max-height: none; box-shadow: none; transform: none; padding: 0; }
+      body.print-mode .no-print, body.print-mode .close { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header"></header>
+  <main>
+    <div class="page-head" style="padding:56px 0 40px">
+      <span class="eyebrow">Admin</span>
+      <h1 class="h1">주문 관리</h1>
+      <p id="adminWho"></p>
+    </div>
+    <section class="container section-sm" id="adminRoot">
+      <p class="muted center">관리자 권한을 확인하고 있어요…</p>
+    </section>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/bottle.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
